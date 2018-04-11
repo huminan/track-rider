@@ -1,0 +1,87 @@
+C51 COMPILER V9.52.0.0   TIMER                                                             02/09/2018 16:03:50 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE TIMER
+OBJECT MODULE PLACED IN timer.OBJ
+COMPILER INVOKED BY: D:\Software\Development\Hardware\Coder\Keli 51\c51v952\C51\BIN\C51.EXE timer.c LARGE BROWSE DEBUG O
+                    -BJECTEXTEND TABS(2)
+
+line level    source
+
+   1          #include "sys.h"
+   2          
+   3          volatile unsigned int data timer0_cnt = 0;
+   4          volatile int data sec_cnt;
+   5          void (code * pfun1)(void) = 0;  // 定时到达时操作函数的函数指针1
+   6          
+   7          #define T0H 0xF8 
+   8          #define T0L 0xCD
+   9          
+  10          /***************************初始化定时器0****************************/
+  11          /*函数原型:Timer0Init
+  12          /*函数功能:初始化定时器0
+  13          /*输入参数:无
+  14          /*输出参数:无
+  15          /********************************************************************/
+  16          void Timer0Init(void)
+  17          {
+  18   1      
+  19   1        TMOD=0x01;                      //设置定时器0为工作方式1
+  20   1        //  AUXR|=T0x12;
+  21   1        TH0=T0H;                        //放入初值,22.1184M,1ms
+  22   1        TL0=T0L;
+  23   1      
+  24   1        // 设置定时器0中断优先级(优先级1)
+  25   1        IPH &= ~0x02;
+  26   1        PT0 = 1;
+  27   1      
+  28   1        EA=1;                           //开总中断
+  29   1        ET0=1;                          //开定时器0中断
+  30   1        TR0=1;                          //启动定时器0
+  31   1      }
+  32          
+  33          /***************************定时器0中断******************************/
+  34          /*函数原型:Timer0
+  35          /*函数功能:每1ms执行一次中断，中断内部重新赋值
+  36          /*输入参数:无
+  37          /*输出参数:无
+  38          /********************************************************************/
+  39          void timer0() interrupt 1
+  40          {
+  41   1        TH0=T0H;
+  42   1        TL0=T0L;
+  43   1        timer0_cnt++;
+  44   1        if(timer0_cnt == 1000)
+  45   1        {
+  46   2          timer0_cnt = 0;
+  47   2          sec_cnt++;
+  48   2        }
+  49   1      }
+  50          
+  51          /***************************定时函数******************************/
+  52          /*函数原型:void DelaySec(unsigned char sec)
+  53          /*函数功能:等待一秒
+  54          /*输入参数:sec，要等待的时间（秒）
+C51 COMPILER V9.52.0.0   TIMER                                                             02/09/2018 16:03:50 PAGE 2   
+
+  55          /*输出参数:无
+  56          /********************************************************************/
+  57          void DelaySec(unsigned char sec)
+  58          {
+  59   1        sec_cnt = 0;
+  60   1        while(sec_cnt < sec);   
+  61   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     88    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =      2    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      4    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

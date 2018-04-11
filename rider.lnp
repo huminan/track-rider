@@ -1,0 +1,7 @@
+"main.obj",
+"gprs.obj",
+"gps.obj",
+"uart.obj",
+"timer.obj" 
+TO "rider" 
+RAMSIZE(256) 

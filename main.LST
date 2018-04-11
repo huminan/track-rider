@@ -1,0 +1,135 @@
+C51 COMPILER V9.52.0.0   MAIN                                                              02/09/2018 16:03:49 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: D:\Software\Development\Hardware\Coder\Keli 51\c51v952\C51\BIN\C51.EXE main.c LARGE BROWSE DEBUG OB
+                    -JECTEXTEND TABS(2)
+
+line level    source
+
+   1          /***********************************************************************
+   2          时间：2012.11.24
+   3          芯片：STC12C5A60S2
+   4          晶振：22.1184MHz  波特率：9600bps
+   5          
+   6          引脚定义：串行口1：发送————TxD/P3.1； 接收————RxD/P3.0
+   7                    串行口2：发送————TxD2/P1.3；接收————RxD2/P1.2
+   8                    
+   9          需要功能：串行口1与GPS通信，只负责收；不需要用中断方式，每5s接收一次
+  10                    串行口2与SIM通信，收发均需要。
+  11          
+  12          注意：每个烧写前要不一样的device_id
+  13          
+  14          若sim注册成功，P0_0亮绿灯
+  15          若接收gps信号错误，P0_1亮红灯
+  16          若还未定位，P0_3亮黄灯
+  17          ***********************************************************************/
+  18          #include "sys.h"
+  19          
+  20          /*****************主函数******************/
+  21          void main(void)
+  22          {
+  23   1          InitUART();        //串行口1和2初始化
+  24   1          Timer0Init();      //定时器0初始化
+  25   1        
+  26   1          CleanSimRcv();  
+  27   1          while(!Hand("OK"))//与GSM模块握手，判断是否收到GSM模块返回的OK
+  28   1          {
+  29   2              Uart2SendStr("ATE0\r");//关闭回显命令
+  30   2              DelaySec(1);
+  31   2          }
+  32   1          Uart1SendStr("done 1\r");   // test
+  33   1          
+  34   1          CleanSimRcv();//清除接收缓存
+  35   1          while(!(Hand("+CREG: 1,1") || Hand("+CREG: 1,5")))//检测是否以注册到服务商
+  36   1          {
+  37   2              Uart2SendStr("AT+CREG=1\r");//设置服务商状态为数据显示
+  38   2              DelaySec(1);
+  39   2              Uart2SendStr("AT+CREG?\r");//检测服务商状态
+  40   2              DelaySec(1);    
+  41   2          }
+  42   1          CleanSimRcv();//清除接收缓存
+  43   1          //灭绿灯表示注册成功
+  44   1          P0_0 = 0;
+  45   1          Uart1SendStr("done 2\r"); // test
+  46   1          
+  47   1          while(!Hand("OK"))
+  48   1          {
+  49   2              Uart2SendStr("AT+CSTT=\"CMNET\"\r");  // 指定移动营业端
+  50   2              DelaySec(1);
+  51   2          }
+  52   1          Uart1SendStr("done 3\r");   // test
+  53   1          while(!Hand("OK"))
+  54   1          {
+C51 COMPILER V9.52.0.0   MAIN                                                              02/09/2018 16:03:49 PAGE 2   
+
+  55   2              Uart2SendStr("AT+CIICR\r"); // IP激活场景
+  56   2              DelaySec(1);
+  57   2          }
+  58   1          Uart1SendStr("done 4\r");   // test
+  59   1          
+  60   1          
+  61   1      // start
+  62   1          Uart2SendStr("AT+CLPORT=\"TCP\",\"2022\"\r");//发送指令指定本地端口
+  63   1          DelaySec(1);
+  64   1      
+  65   1          Uart2SendStr("AT+CIPHEAD=1\r");//显示IP头？？？？？？？？？？？？？？？？？？？？
+             -？？？？
+  66   1          DelaySec(1);
+  67   1      
+  68   1      
+  69   1          CleanSimRcv();//清除接收缓存
+  70   1        
+  71   1          Uart2SendStr("AT+CIPSTART=\"TCP\",\"www.huminant.top\",1592\r");  //连接服务器，服务器端口号1
+             -592***********************  
+  72   1          while(!(Hand("CONNECT OK"))); //检测是否收到 CONNECT OK ,如果连接成功 */
+  73   1          Uart1SendStr("done 5\r");   // test
+  74   1          
+  75   1          while(1)
+  76   1          {
+  77   2              //过5秒发送一次GPS数据
+  78   2              DelaySec(5);
+  79   2      //        Record_Gps();
+  80   2          }
+  81   1          
+  82   1        
+  83   1          /*开始等待接收服务器数据*********************************
+  84   1          while(1)
+  85   1          {
+  86   1              if((Hand("+IPD") && (Hand("LED1") || Hand("led1"))))//检测是否收到led1
+  87   1              {
+  88   1                  LED2_ON;
+  89   1                  LCD_prints(0,1,"LED2 ON");
+  90   1                  CleanSimRcv();//清除接收缓存  
+  91   1              }
+  92   1              
+  93   1              if((Hand("+IPD") && (Hand("LED0") || Hand("led0"))))//检测是否收到led0
+  94   1              {
+  95   1                  LED2_OFF;
+  96   1                  LCD_prints(0,1,"LED2 OFF");
+  97   1                  CleanSimRcv();//清除接收缓存  
+  98   1              }
+  99   1      
+ 100   1              if(sec_cnt >= 60)//一分钟后跳出循环，重新连接。
+ 101   1              {
+ 102   1                  break;
+ 103   1              } 
+ 104   1          }*/
+ 105   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    253    ----
+   CONSTANT SIZE    =    211    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+C51 COMPILER V9.52.0.0   MAIN                                                              02/09/2018 16:03:49 PAGE 3   
+
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
